@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Multi-tenant schema models
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique // URL-friendly identifier
+  description String?
+  users       User[]
+  projects    Project[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("organizations")
+}
+
+model User {
+  id             String        @id @default(cuid())
+  clerkId        String?       @unique // Clerk user ID for authentication (nullable for initial seed)
+  email          String        @unique
+  name           String?
+  firstName      String?
+  lastName       String?
+  imageUrl       String?
+  role           Role          @default(USER)
+  organizationId String?       // Optional for SUPER_ADMIN users
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectMembers ProjectMember[]
+  documents      Document[]    // Documents authored by this user
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("users")
+}
+
+enum Role {
+  SUPER_ADMIN // Platform admin
+  ORG_ADMIN   // Organization admin
+  MANAGER     // Project manager
+  USER        // Regular user
+  VIEWER      // Read-only access
+}
+
+model Project {
+  id             String          @id @default(cuid())
+  name           String
+  slug           String          // URL-friendly identifier
+  description    String?
+  status         ProjectStatus   @default(ACTIVE)
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members        ProjectMember[]
+  documents      Document[]      // Documents in this project
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([slug, organizationId]) // Unique slug per organization
+  @@map("projects")
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  DRAFT
+}
+
+model ProjectMember {
+  id        String            @id @default(cuid())
+  userId    String
+  projectId String
+  role      ProjectMemberRole @default(MEMBER)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([userId, projectId])
+  @@map("project_members")
+}
+
+enum ProjectMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model Document {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        // URL-friendly identifier
+  content     String?       // MDX content
+  summary     String?       // Brief description
+  status      DocumentStatus @default(DRAFT)
+  projectId   String
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User          @relation(fields: [authorId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([slug, projectId]) // Unique slug per project
+  @@map("documents")
+}
+
+enum DocumentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
