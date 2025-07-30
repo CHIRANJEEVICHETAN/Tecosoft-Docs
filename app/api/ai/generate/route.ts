@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { AIService } from '@/lib/services/ai-service'
+import { SubscriptionService } from '@/lib/services/subscription-service'
 
 interface AIGenerationRequest {
   type: 'generate' | 'improve' | 'summarize' | 'translate'
@@ -47,6 +49,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check subscription limits
+    const canUseAI = await SubscriptionService.canPerformAction(
+      user.organizationId!,
+      'use_ai'
+    )
+
+    if (!canUseAI.allowed) {
+      return NextResponse.json(
+        { success: false, error: canUseAI.reason },
+        { status: 429 }
+      )
+    }
     const body: AIGenerationRequest = await request.json()
     const { type, prompt, content, options } = body
 
@@ -72,33 +86,38 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check AI usage limits (mock implementation)
-    const currentUsage = await getCurrentMonthlyUsage(user.organizationId)
-    const usageLimit = 1000 // Mock limit
-    
-    if (currentUsage >= usageLimit) {
-      return NextResponse.json(
-        { success: false, error: 'Monthly AI usage limit exceeded' },
-        { status: 429 }
-      )
+    // Use AI service
+    const aiService = new AIService('openai') // or 'claude'
+    let result: { content: string; usage: number }
+
+    switch (type) {
+      case 'generate':
+        result = await aiService.generateContent(prompt, user.id, user.organizationId!)
+        break
+      case 'improve':
+        result = await aiService.improveContent(content!, prompt, user.id, user.organizationId!)
+        break
+      case 'summarize':
+        result = await aiService.summarizeContent(content!, user.id, user.organizationId!)
+        break
+      case 'translate':
+        return NextResponse.json(
+          { success: false, error: 'Translation feature coming soon' },
+          { status: 501 }
+        )
+      default:
+        return NextResponse.json(
+          { success: false, error: 'Invalid generation type' },
+          { status: 400 }
+        )
     }
-
-    // Mock AI generation (in real implementation, this would call OpenAI/Claude/etc.)
-    const generatedContent = await mockAIGeneration(type, prompt, content, options)
-    const usageCredits = calculateUsageCredits(generatedContent)
-
-    // In a real implementation, you would:
-    // 1. Call the actual AI service (OpenAI, Claude, etc.)
-    // 2. Store the generation in a database for tracking
-    // 3. Update usage statistics
 
     const generationId = `gen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-    // Mock response
     const response = {
       id: generationId,
-      content: generatedContent,
-      usage: usageCredits,
+      content: result.content,
+      usage: result.usage,
       timestamp: new Date().toISOString(),
       type
     }
