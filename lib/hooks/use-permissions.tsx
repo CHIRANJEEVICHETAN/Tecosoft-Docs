@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Permission } from '../middleware/rbac-middleware'

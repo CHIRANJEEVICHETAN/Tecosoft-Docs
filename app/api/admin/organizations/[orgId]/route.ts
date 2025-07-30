@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { Role } from '@prisma/client'
 
@@ -8,7 +8,7 @@ export async function PATCH(
   { params }: { params: { orgId: string } }
 ) {
   try {
-    const { userId } = auth()
+    const { userId } = await auth()
     
     if (!userId) {
       return NextResponse.json(

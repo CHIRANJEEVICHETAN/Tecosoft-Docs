@@ -6,7 +6,7 @@ import { SimpleDashboardHeader } from '@/components/dashboard'
 export default function AIAssistantPage() {
   return (
     <>
-      <SimpleDashboardHeader 
+      <SimpleDashboardHeader
         title="AI Assistant"
         description="Leverage AI-powered tools to create, improve, and optimize your documentation"
       />
@@ -78,6 +78,6 @@ export default function AIAssistantPage() {
           </div>
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </>
   )
 }

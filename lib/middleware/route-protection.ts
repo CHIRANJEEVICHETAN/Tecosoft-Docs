@@ -3,13 +3,10 @@ import { auth } from '@clerk/nextjs/server'
 import { withTenantContext, withProjectAccess, TenantContext } from './tenant-middleware'
 import { 
   Permission, 
-  hasPermission,
-  RolePermissions,
   getRolePermissions,
   getProjectRolePermissions,
   withRBAC,
   withProjectRBAC,
-  hasProjectPermission
 } from './rbac-middleware'
 import { MultiTenantService } from '../multi-tenant'
 import { Role, ProjectMemberRole } from '@prisma/client'

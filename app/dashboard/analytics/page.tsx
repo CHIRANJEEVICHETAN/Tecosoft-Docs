@@ -1,3 +1,5 @@
+"use client";
+
 import { Permission } from '@/lib/middleware/rbac-middleware'
 import { PermissionGate } from '@/lib/hooks/use-permissions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { Role } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = auth()
-    
+    const { userId } = await auth()
+
     if (!userId) {
       return NextResponse.json(
         { success: false, error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
@@ -123,12 +123,12 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching user dashboard data:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          code: 'INTERNAL_ERROR', 
-          message: 'Failed to fetch dashboard data' 
-        } 
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to fetch dashboard data'
+        }
       },
       { status: 500 }
     )

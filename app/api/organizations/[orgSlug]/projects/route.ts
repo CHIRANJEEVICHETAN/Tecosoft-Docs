@@ -15,7 +15,7 @@ export async function GET(
 ) {
   return protectOrganizationRoute(
     request,
-    async (req: NextRequest, context: TenantContext) => {
+    async (req: NextRequest, context: TenantContext) => {
       try {
         const projects = await MultiTenantService.getProjectsByOrganization(
           context.organizationId
@@ -30,6 +30,7 @@ export async function GET(
       }
     },
     [Permission.VIEW_PROJECT]
+  )
 }
 
 /**
@@ -42,7 +43,7 @@ export async function POST(
 ) {
   return protectOrganizationRoute(
     request,
-    async (req: NextRequest, context: TenantContext) => {
+    async (req: NextRequest, context: TenantContext) => {
       try {
         const body = await req.json()
         const { name, slug, description } = body
@@ -91,4 +92,5 @@ export async function POST(
       }
     },
     [Permission.CREATE_PROJECT]
+  )
 }

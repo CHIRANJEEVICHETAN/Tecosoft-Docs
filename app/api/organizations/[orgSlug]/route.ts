@@ -45,6 +45,7 @@ export async function GET(
       }
     },
     [Permission.VIEW_ORGANIZATION]
+  )
 }
 
 /**
@@ -105,6 +106,7 @@ export async function PUT(
       }
     },
     [Permission.MANAGE_ORGANIZATION]
+  )
 }
 
 /**

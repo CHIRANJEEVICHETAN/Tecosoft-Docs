@@ -64,6 +64,7 @@ export async function GET(
       }
     },
     [Permission.VIEW_PROJECT]
+  )
 }
 
 /**
@@ -134,6 +135,7 @@ export async function PUT(
       }
     },
     [Permission.MANAGE_PROJECT]
+  )
 }
 
 /**
@@ -175,4 +177,5 @@ export async function DELETE(
       }
     },
     [Permission.DELETE_PROJECT]
+  )
 }
